@@ -8,18 +8,25 @@ import sys
 from ase.atoms import string2symbols
 from ase.thermochemistry import HarmonicThermo,IdealGasThermo
 from ase.io import write, read
+from glob import glob
 
 ## user input
-log_file = str(sys.argv[1]) ## log file name
-shape = str(sys.argv[2])      ## strucutre shape
-symnum = int(sys.argv[3])              ## symmetry number
-spin = int(sys.argv[4])                 ## spin number
-temp = float(sys.argv[5])            ## temperature in K
-pres = float(sys.argv[6])        ## pressure in Pa          
+shape = str(sys.argv[1])      ## strucutre shape
+symnum = int(sys.argv[2])              ## symmetry number
+spin = int(sys.argv[3])                 ## spin number
+temp = float(sys.argv[4])            ## temperature in K
+pres = float(sys.argv[5])        ## pressure in Pa          
+
+RMFREQ_KbT = str(sys.argv[6]) ## Remove frequencies below KbT cutoff
 
 ## conversion factors
-HarttoeV = 27.21138505
-CmtoeV = .000123981
+HarttoeV = float(27.2114)
+CmtoeV = float(1.239842E-4)
+
+## get log file name
+
+file_list = glob('*.log')
+log_file = file_list[0]
 
 ## get SCF energy from the log file
 Energy = []
@@ -40,20 +47,36 @@ freq_file = open("frequencies.dat")
 raw_freq = freq_file.read().replace('[', ' ').replace(']', ' ').split()[-1]
 for i in raw_freq.split(','):
     Freq.append(float(i)*CmtoeV)
-    
+
+for i in Freq:
+    if i <= 0:
+        Freq.remove(i)
+
+freq_kbt_cutoff = float(8.6173324E-5 * temp)
+
+freq_remove = []
+
+if RMFREQ_KbT == "True":
+    for i in Freq:
+        if i <= freq_kbt_cutoff:
+            freq_remove.append(i)
+    for i in freq_remove:
+        if i in Freq:
+            Freq.remove(i)
+
 ## get the strucuter from the output file
 struc = read(log_file,format='gaussian-out')
 
 ## get the ideal gas limit thermodynamic values
-thermo = IdealGasThermo(vib_energies=Freq, potentialenergy=scf_energy_eV, 
-                        atoms=struc, geometry=shape, 
+thermo = IdealGasThermo(vib_energies=Freq, potentialenergy=scf_energy_eV,
+                        atoms=struc, geometry=shape,
                         symmetrynumber=symnum, spin=spin)
 
 print "Ideal Gas Limit"
 
 ZPE = thermo.get_ZPE_correction()
 H = thermo.get_enthalpy(temperature=temp)
-S = thermo.get_entropy(temperature=temp,pressure=pres)                        
+S = thermo.get_entropy(temperature=temp,pressure=pres)
 G = thermo.get_gibbs_energy(temperature=temp,pressure=pres)
 
 print " "
@@ -70,13 +93,11 @@ print "Harmonic Approximation"
 
 ZPE = thermo.get_ZPE_correction()
 U = thermo.get_internal_energy(temperature=temp)
-S = thermo.get_entropy(temperature=temp)                        
-F = thermo.get_helmholtz_energy(temperature=temp)
+S = thermo.get_entropy(temperature=temp)
+H = thermo.get_helmholtz_energy(temperature=temp)
 
 print " "
 print "ZPE correction (ZPE) = ", ZPE , " eV"
 print "Internal energy (U) = ", U, " eV"
 print "Entropy (S) = ", S, " eV/K"
 print "Helmholtz Energy (F) = ", F, " eV"
-
-
