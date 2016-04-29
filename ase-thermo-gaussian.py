@@ -17,8 +17,8 @@ temp = 298.15            ## temperature in K
 pres = 101325        ## pressure in Pa          
 
 ## conversion factors
-HarttoeV = 27.21138505
-CmtoeV = .000123981
+HarttoeV = float(27.2114)
+CmtoeV = float(1.239842E-4)
 
 ## get SCF energy from the log file
 Energy = []
@@ -44,7 +44,7 @@ for i in raw_freq.split(','):
 struc = read(log_file,format='gaussian_out')
 
 ## get the ideal gas limit thermodynamic values
-thermo = IdealGasThermo(vib_energies=Freq, electronicenergy=scf_energy_eV, 
+thermo = IdealGasThermo(vib_energies=Freq, potentialenergy=scf_energy_eV, 
                         atoms=struc, geometry=shape, 
                         symmetrynumber=symnum, spin=spin)
 
@@ -62,7 +62,7 @@ print "Entropy (S) = ", S, " eV/K"
 print "Gibbs Energy (G) = ", G, " eV"
 
 ## get the harmonic limit thermodynamic values
-thermo = HarmonicThermo(vib_energies=Freq, electronicenergy=scf_energy_eV)
+thermo = HarmonicThermo(vib_energies=Freq, potentialenergy=scf_energy_eV)
 
 print
 print "Harmonic Approximation"
@@ -70,11 +70,11 @@ print "Harmonic Approximation"
 ZPE = thermo.get_ZPE_correction()
 U = thermo.get_internal_energy(temperature=temp)
 S = thermo.get_entropy(temperature=temp)                        
-G = thermo.get_gibbs_energy(temperature=temp)
+H = thermo.get_helmholtz_energy(temperature=temp)
 
 print " "
 print "ZPE correction (ZPE) = ", ZPE , " eV"
 print "Internal energy (U) = ", U, " eV"
 print "Entropy (S) = ", S, " eV/K"
-print "Gibbs Energy (G) = ", G, " eV"
+print "Helmholtz Energy (H) = ", H, " eV"
 
