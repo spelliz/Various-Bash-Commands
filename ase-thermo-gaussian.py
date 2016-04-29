@@ -7,9 +7,9 @@ Created on Fri Apr 15 10:10:15 2016
 from ase.atoms import string2symbols
 from ase.thermochemistry import HarmonicThermo,IdealGasThermo
 from ase.io import write, read
+from glob import glob
 
 ## user input
-log_file = "PFeOH-QM-AlOH2+L.log" ## log file name
 shape = "nonlinear"      ## strucutre shape
 symnum = 1              ## symmetry number
 spin = 6                 ## spin number
@@ -18,10 +18,14 @@ pres = 101325        ## pressure in Pa
 
 RMFREQ_KbT = "True" ## Remove frequencies below KbT cutoff
 
-
 ## conversion factors
 HarttoeV = float(27.2114)
 CmtoeV = float(1.239842E-4)
+
+## get log file name
+
+file_list = glob('*.log')
+log_file = file_list[0]
 
 ## get SCF energy from the log file
 Energy = []
