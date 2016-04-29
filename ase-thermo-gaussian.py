@@ -41,7 +41,7 @@ for i in raw_freq.split(','):
     Freq.append(float(i)*CmtoeV)
     
 ## get the strucuter from the output file
-struc = read(log_file,format='gaussian_out')
+struc = read(log_file,format='gaussian-out')
 
 ## get the ideal gas limit thermodynamic values
 thermo = IdealGasThermo(vib_energies=Freq, potentialenergy=scf_energy_eV, 
